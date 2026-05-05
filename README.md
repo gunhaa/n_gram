@@ -29,10 +29,8 @@ n_gram/
 │   ├── step02_unigram_sample.c         # 유니그램 확률 분포 기반 샘플링
 │   ├── step02_unigram_sample           # 컴파일된 실행 파일
 │   └── unigram_sample_result.txt       # 결과: 10세트 × 10글자
-├── feedback/                           # 작업 기록
-│   ├── data_setup.md
-│   ├── step1_charfreq.md
-│   └── step2_unigram_sample.md
+├── feedback/
+│   └── heavy_io_analysis.md            # 고비용 I/O 분석 및 최적화 방안
 ├── README.md
 └── CLAUDE.md
 ```
