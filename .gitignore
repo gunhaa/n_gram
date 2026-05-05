@@ -2,3 +2,5 @@ step1/step01_charfreq
 step2/step02_unigram_sample
 step3/step03_bigram_freq
 step3/step03_bigram_sample
+step4/step04_trigram_freq
+step4/step04_trigram_sample

@@ -15,7 +15,7 @@
 #define START_CP      0x0001u
 #define END_CP        0x0002u
 
-#define SEQ_COUNT     10     /* 생성할 문장 수 */
+#define SEQ_COUNT     1000   /* 생성할 문장 수 */
 #define MAX_SEQ_LEN   50     /* 무한 루프 방지용 최대 글자 수 */
 #define MAX_DICT_SIZE 520000 /* 사전 최대 항목 수 */
 
