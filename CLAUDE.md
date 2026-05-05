@@ -22,13 +22,18 @@
 - 실행 파일: `step{N}/step0{N}_{작업명}` (확장자 없음)
 
 ### 토큰 절약
-- **작업 전**: `feedback/` 폴더의 관련 기록을 먼저 확인
+- **작업 전**: `feedback/` 폴더의 관련 기록을 먼저 확인 — 파일을 직접 읽기 전에 반드시 확인
 - **작업 후**: 주요 작업(데이터 전처리, 새 step 추가 등)은 `feedback/`에 기록
-- 대용량 파일(`kr_korean.csv`, `kr_korean_simple.csv`) 직접 읽기 금지 — 필요시 `head`, `grep`, `wc -l`로 확인
 
-### 데이터 경로
-- 원본 사전: `data/korean-dict/kr_korean.csv`
-- 전처리 완료: `data/korean-dict/kr_korean_simple.csv` (508,142줄 — 원본과 동일 레코드 수)
+### 절대 직접 읽지 않는 파일 (Read 도구 사용 금지)
+
+| 파일 | 크기 | 알려진 사실 |
+|------|------|------------|
+| `data/korean-dict/kr_korean.csv` | 9.7MB / 508,142줄 | 원본 사전, 형식: `낱말,품사`, UTF-8 BOM |
+| `data/korean-dict/kr_korean_simple.csv` | 5.5MB / 508,142줄 | 전처리 완료, 낱말만, 구분자(-,^,공백) 제거됨 |
+| `step1/charfreq_result.txt` | 2,467줄 | 형식: `글자\t빈도`, 빈도 내림차순, 상위: 다(90519) 하(58848) 기(28632) |
+
+내용 확인이 필요할 때는 `head -N`, `grep`, `wc -l` 만 사용한다.
 
 ### 컴파일
 ```bash
@@ -39,18 +44,25 @@ gcc -O2 -o step{N}/실행파일명 step{N}/소스파일.c
 - 함수마다 한국어 주석 작성
 - 전역 상수는 `#define`으로 상단에 정의
 - 결과 출력 형식: `항목\t빈도` (탭 구분, 빈도 내림차순)
+- 결과는 파일 스트림(`FILE*`)으로 저장, 경로는 인자로 받아 기본값 제공
+
+### step 간 의존 관계
+- 각 step은 이전 step의 결과 파일을 입력으로 받는다
+- step2는 step1의 `charfreq_result.txt`를 입력으로 사용
 
 ## 현재 진행 단계
 
 | Step | 내용 | 상태 |
 |------|------|------|
-| step1 | 완성형 글자 빈도 분석 | 완료 |
+| step1 | 완성형 글자(가-힣) 빈도 집계 | 완료 |
+| step2 | 유니그램 확률 분포 기반 샘플링 (10세트 × 10글자) | 완료 |
 
 ## feedback 폴더 활용
 
 새 대화에서 작업 맥락을 빠르게 복원하려면:
 ```
 feedback/
-├── data_setup.md       # 데이터 수집 및 전처리 과정
-└── step1_charfreq.md   # step1 작업 내용 및 결과 요약
+├── data_setup.md           # 데이터 수집 및 전처리 과정
+├── step1_charfreq.md       # step1 작업 내용 및 결과 요약
+└── step2_unigram_sample.md # step2 작업 내용 및 결과 요약
 ```
