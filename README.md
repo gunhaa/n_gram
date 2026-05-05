@@ -19,18 +19,29 @@ n_gram/
 ├── data/
 │   └── korean-dict/
 │       ├── kr_korean.csv               # 원본 사전 데이터 (낱말,품사)
-│       ├── kr_korean_simple.csv        # 전처리 완료 데이터 (낱말만, 508,142줄)
+│       ├── kr_korean_simple.csv        # 전처리 완료 (낱말만, 508,142줄)
 │       └── README.md
 ├── step1/
-│   ├── step01_charfreq.c               # 완성형 글자 빈도 집계
-│   ├── step01_charfreq                 # 컴파일된 실행 파일
-│   └── charfreq_result.txt             # 결과: 글자\t빈도 (빈도 내림차순)
+│   ├── step01_charfreq.c               # 완성형 글자(가-힣) 빈도 집계
+│   └── charfreq_result.txt             # 결과: 2,467개 글자, 빈도 내림차순
 ├── step2/
 │   ├── step02_unigram_sample.c         # 유니그램 확률 분포 기반 샘플링
-│   ├── step02_unigram_sample           # 컴파일된 실행 파일
 │   └── unigram_sample_result.txt       # 결과: 10세트 × 10글자
+├── step3/
+│   ├── step03_bigram_freq.c            # 바이그램 빈도 집계 (^/$ 경계 포함)
+│   ├── bigram_stats.txt                # 통계: 172,685개 바이그램
+│   ├── step03_bigram_sample.c          # 바이그램 샘플링 + 사전 검증 [O]/[X]
+│   └── bigram_result.txt              # 결과: 1,000개 샘플
+├── step4/
+│   ├── step04_trigram_freq.c           # 트라이그램 빈도 집계 (^^/^/$ 경계 포함)
+│   ├── trigram_stats.txt               # 통계: 659,449개 트라이그램
+│   ├── step04_trigram_sample.c         # 트라이그램 샘플링 + 사전 검증 [O]/[X]
+│   └── trigram_result.txt             # 결과: 1,000개 샘플
+├── report/
+│   ├── generate_report.py              # 바이그램 vs 트라이그램 비교 분석 스크립트
+│   └── comparison_report.md           # 비교 리포트
 ├── feedback/
-│   └── heavy_io_analysis.md            # 고비용 I/O 분석 및 최적화 방안
+│   └── high_token_patterns.md          # 고토큰 소비 원인 및 방지책
 ├── README.md
 └── CLAUDE.md
 ```
@@ -39,8 +50,7 @@ n_gram/
 
 `kr_korean.csv` → `kr_korean_simple.csv` 변환 규칙:
 - `-`, `^`, 공백은 복합어 표기 구분자 → **제거 후 글자를 합쳐 유지**
-- 품사 정보 제거, 낱말만 보존
-- 레코드 수 동일 유지 (508,142줄)
+- 품사 정보 제거, 낱말만 보존 / 레코드 수 동일 유지 (508,142줄)
 
 ```python
 import re
@@ -54,27 +64,37 @@ with open('data/korean-dict/kr_korean.csv', encoding='utf-8-sig') as f, \
 
 ## 실행 방법
 
-### Step 1: 완성형 글자 빈도 분석
-
 ```bash
+# Step 1: 글자 빈도
 gcc -O2 -o step1/step01_charfreq step1/step01_charfreq.c
 ./step1/step01_charfreq > step1/charfreq_result.txt
-```
 
-결과 형식: `글자\t빈도` (빈도 내림차순, 2,467개 글자)
-
-### Step 2: 유니그램 샘플링
-
-```bash
+# Step 2: 유니그램 샘플링
 gcc -O2 -o step2/step02_unigram_sample step2/step02_unigram_sample.c
 ./step2/step02_unigram_sample
+
+# Step 3: 바이그램
+gcc -O2 -o step3/step03_bigram_freq step3/step03_bigram_freq.c
+./step3/step03_bigram_freq
+gcc -O2 -o step3/step03_bigram_sample step3/step03_bigram_sample.c
+./step3/step03_bigram_sample
+
+# Step 4: 트라이그램
+gcc -O2 -o step4/step04_trigram_freq step4/step04_trigram_freq.c
+./step4/step04_trigram_freq
+gcc -O2 -o step4/step04_trigram_sample step4/step04_trigram_sample.c
+./step4/step04_trigram_sample
+
+# 비교 리포트
+python3 report/generate_report.py
 ```
 
-결과 형식: `set 01: 하없원하이어나마이음` × 10세트
+## 진행 단계 및 주요 결과
 
-## 진행 단계
-
-| Step | 내용 | 상태 |
-|------|------|------|
-| step1 | 완성형 글자(가-힣) 빈도 집계 | 완료 |
-| step2 | 유니그램 확률 분포 기반 샘플링 | 완료 |
+| Step | 내용 | 주요 수치 |
+|------|------|---------|
+| step1 | 완성형 글자 빈도 집계 | 2,467개 고유 글자 |
+| step2 | 유니그램 샘플링 | 빈도 비례 가중 샘플링 |
+| step3 | 바이그램 빈도 + 샘플링 | 172,685개 바이그램, 사전 일치율 41.3% |
+| step4 | 트라이그램 빈도 + 샘플링 | 659,449개 트라이그램, 사전 일치율 62.7% |
+| report | 바이그램 vs 트라이그램 비교 | 트라이그램 +21.4%p 높음 |
